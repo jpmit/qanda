@@ -1,0 +1,6 @@
+* sort out users disconnecting
+* allow adding root questions
+* sort out javascript client, especially main data structures
+* sort out python code, especially where everything is
+* some CSS formatting and layout
+* add persistence (database)

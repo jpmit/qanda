@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono' rel='stylesheet' type='text/css'>
+    <link href="qanda.css" type="text/css" rel="stylesheet" />
+  <title>Q&A</title>
+  </head>
+
+  <body>
+    <h1>Q&A</h1>
+    <h2>Current users</h2>
+    <div id="handles">
+      <div>Users:</div>
+      <div id="myhandle"></div>
+    </div>
+    <h2>Questions</h2>
+    <div id="questiontree">
+    </div>
+    <hr>
+    <div id="replyuser">
+    </div>
+    <div id="replymessage">
+    </div>
+    <form id="sendmessage" action="">
+      <textarea id="msgtxt" rows="5" cols="50"></textarea>
+      <br/>
+      <input type="submit" value="Reply"/>
+    </form>
+
+    <script src="websocket.js"></script>
+    <script src="callbacks.js"></script>
+    <script>
+      window.onload = function() {
+      WS.init();
+      };
+    </script>
+  </body>
+</html>

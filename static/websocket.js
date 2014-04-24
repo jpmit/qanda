@@ -1,83 +1,93 @@
 // websocket.js
+// James Mithen
 // A minimal encapsulation of the WebSocket API.
 
-var WS = (function () {
-    
-    var wsUri = "ws://localhost:9500/";
-    // simulated latency (one way trip time) in ms
-    var simLatency = 50;
-    var debug = true; // print messages sent and received to console
-    var dummy = false; // if dummy, no messages sent/received
-    var sendFunction;
-    var onmessageFunction;
-    
-    var callbacks;
-    var ws;
+'use strict';
+/*jslint browser:true */
+/*global WebSocket */
 
-    if (dummy) {
-        onmessageFunction = function () { };
-        sendFunction = function () {};
+// note that ws lives in the global namespace
+var ws = (function () {
+
+    // configuation options
+    var wsUri = "ws://localhost:9500/",
+        simLatency = 50, // simulated latency (one way trip time) in ms
+        debug = true,    // print messages sent and received to console
+        dummy = false,   // if dummy, no messages sent/received
+        callbacks,
+        webSocket;
+
+    function onMessageFunction(evt) {
+        var resp;
+        if (debug) {
+            console.log("received message: " + evt.data);
+        }
+        if (dummy) {
+            return;
+        }
+
+        // message received should be JSON
+        resp = JSON.parse(evt.data);
+
+        // call callback function from lookup table
+        callbacks[resp.mtype](resp);
     }
-    else {
-        onmessageFunction = function (evt) {
-            var resp;
-            if (debug) {
-                console.log("received message: " + evt.data);
-            }
 
-            // message received should be JSON
-            resp = JSON.parse(evt.data);
-
-            // call callback function from lookup table
-            callbacks[resp.mtype](resp);
-            };
-
-        sendFunction = function(msg) {
-            if (debug) {
-                console.log("sending message: " + msg);
-            }
-            ws.send(msg);
-        };
+    function sendFunction(msg) {
+        if (debug) {
+            console.log("sending message: " + msg);
+        }
+        if (dummy) {
+            return;
+        }
+        webSocket.send(msg);
     }
 
     // called when we receive a message
-    function onmessage (evt) {
+    function onmessage(evt) {
         window.setTimeout(function () {
-            onmessageFunction(evt);
+            onMessageFunction(evt);
         }, simLatency);
     }
 
-    // called when connection opened
-    function onopen (evt) {
+    // called when websockset connection opened
+    function onopen() {
+        return;
     }
 
-    function onclose (evt) {
+    // called when websockset connection closed
+    function onclose() {
+        return;
+    }
+
+    function onerror() {
+        return;
     }
 
     // callbacks should have keys for the different mtypes, and values
     // that are the callback functions.
-    function setCallBacks (cbacks) {
+    function setCallBacks(cbacks) {
         callbacks = cbacks;
     }
-    
+
     // send a message from the client to the server
-    function send (msg) {
+    function send(msg) {
         window.setTimeout(function () {
             sendFunction(msg);
-            }, simLatency);
+        }, simLatency);
     }
 
     // web socket setup
-    function init () {
-        ws = new WebSocket(wsUri);
-        ws.onopen = onopen;
-        ws.onclose = onclose;
-        ws.onmessage = onmessage;
-        ws.onerror = onerror;
+    function init() {
+        webSocket = new WebSocket(wsUri);
+        webSocket.onopen = onopen;
+        webSocket.onclose = onclose;
+        webSocket.onmessage = onmessage;
+        webSocket.onerror = onerror;
     }
 
     // public API
     return {init: init,
             setCallBacks : setCallBacks,
-            send: send}
+            send: send};
 }());

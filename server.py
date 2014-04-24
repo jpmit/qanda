@@ -47,7 +47,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         for lid, li in self.listeners.items():
             if lid != clientid:
                 self.send_message_to_client({message.K_TYPE: message.M_NEWHANDLE,
-                                             'handle': li.handle}, clientid)
+                                             'handle': li.handle, 'id': lid}, 
+                                            clientid)
 
         # send all messages in tree to client
         self.send_message_to_client({message.K_TYPE: message.M_FULLTREE,
@@ -56,7 +57,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
         # send new handle to all the other clients
         self.send_message_to_all_except({message.K_TYPE: message.M_NEWHANDLE,
-                                         'handle': handle}, clientid)
+                                         'handle': handle, 'id': clientid}, 
+                                        clientid)
         _NCLIENTS += 1
 
     def on_close(self):
@@ -74,7 +76,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
         if closeid is not None:
             self.send_message_to_all_except({message.K_TYPE: message.M_REMOVEHANDLE,
-                                             'handle': self.listeners[closeid].handle},
+                                             'id': closeid},
                                             closeid)
             del self.listeners[closeid]
         else:

@@ -1,6 +1,10 @@
 // websocket.js
 // James Mithen
 // A minimal encapsulation of the WebSocket API.
+// Messages are JSON encoded before sending, and decoded on arrival.
+// All received messages should have "mtype" as a key.  Each arriving message
+// is passed to a callback function according to its mtype; the
+// callback function can be set by calling the function ws.setCallBacks
 
 'use strict';
 /*jslint browser:true */

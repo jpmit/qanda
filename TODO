@@ -1,8 +1,8 @@
 * sort out users disconnecting
 * allow adding root questions
-* add post time
 * allow changing username
 * sort out javascript client, especially main data structures
 * sort out python code, especially where everything is
 * some CSS formatting and layout
 * add persistence (database)
+* allow users to upload a photo

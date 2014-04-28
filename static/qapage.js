@@ -1,14 +1,32 @@
 // qapage.js
 // Any javascript code that handles the DOM.
 
+'use strict';
+
+var qa = qa || {};
+
 qa.page = (function () {
-    var sendform;
+    var sendform, handleEdit;
+
+    handleEdit = document.getElementById("editableHandle");
+    handleDiv = document.getElementById("myhandle");
+    handleEdit.onkeyup = function () {
+        setMyIdHandle(qa.myid, handleEdit.value);
+    };
+    // we send the message to the server onchange i.e. only when
+    // handleEdit loses focus.
+    handleEdit.onchange = function () {
+        qa.send({'mtype': 'changehandle', 
+                 'handle': handleEdit.value});
+    };
 
     function setMyIdHandle(id, handle) {
         // store my id
         qa.myid = id;
-        // write handle name to the document
-        document.getElementById("myhandle").innerHTML = handle;
+        // write handle to the editable text box
+        handleEdit.value = handle;
+        // write handle name to the list of users
+        handleDiv.innerHTML = handle;
     }
 
     function addNewHandle(id, handle) {
@@ -55,7 +73,7 @@ qa.page = (function () {
         for (i = 0; i < depth; i += 1) {
             padHTML += "&nbsp;&nbsp;&nbsp;&nbsp;";
         }
-        qdiv.innerHTML = padHTML + "[" + msg.user + "]<br\>" + padHTML + msg.message + "<a href=javascript:void(0) onclick=qa.page.setReplyId(" + msg.id + ");>Reply</a>";
+        qdiv.innerHTML = padHTML + "[" + msg.user + "]" + msg.posttime + "</br>" + padHTML + msg.message + "<a href=javascript:void(0) onclick=qa.page.setReplyId(" + msg.id + ");>Reply</a>";
         // add the div
         pdiv.appendChild(qdiv);
     }

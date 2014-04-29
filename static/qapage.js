@@ -42,6 +42,7 @@ qa.page = (function () {
         qa.currentUsers[id] = handle;
         // add user div to the document
         hdiv.id = "user" +  id;
+        hdiv.className = "other_handle";
         hdiv.innerHTML = handle;
         handlesDiv.appendChild(hdiv);
     }
@@ -59,7 +60,7 @@ qa.page = (function () {
     }
 
     // draw a message on the HTML document
-    function addmessage(msg, depth) {
+    function addmessage(msg) {
         var pDivId,
             pDiv,
             messageDiv = document.createElement('div'),
@@ -68,26 +69,34 @@ qa.page = (function () {
             textDiv = document.createElement('div'),
             replySpan = document.createElement('span'),
             padHTML = "",
+            isRoot = (msg.parentid === qa.rootParentId),
+            parentmsg = isRoot ? {} : qa.allMessages[msg.parentid],
+            depth = isRoot ? 0 : parentmsg.depth + 1,
             i;
+
         // store the message
         msg.depth = depth;
         qa.allMessages[msg.id] = msg;
 
         // get the parent div
-        if (msg.parentid === qa.rootParentId) {
+        if (isRoot) {
             pDivId = "questiontree";
         } else {
             pDivId = "msg" + msg.parentid;
         }
         pDiv = document.getElementById(pDivId);
         // the message div
-        messageDiv.className = "not_selected";
+        messageDiv.className = "message not_selected";
         messageDiv.id = "msg" + msg.id;
-        messageDiv.style.paddingLeft = "" + 10 * depth + "px";
+        messageDiv.style.marginLeft = "" + 50 * depth + "px";
         // user who posted the message
         userSpan.className = "message_user";
         userSpan.innerHTML = msg.user;
+        if (!isRoot) {
+            userSpan.innerHTML += ' > ' + parentmsg.user;
+        }
         // time the message was posted
+        timeSpan.className = "message_time";
         timeSpan.innerHTML = " " + msg.posttime;
         // the actual message text itself
         textDiv.className = "message_text";
@@ -117,7 +126,7 @@ qa.page = (function () {
         }
 
         if (replyid !== undefined && replyid !== qa.rootParentId) {
-            document.getElementById("msg" + replyid).className = "not_selected";
+            document.getElementById("msg" + replyid).className = "message not_selected";
         }
         // set replyid in outer scope
         replyid = msgid;
@@ -127,7 +136,7 @@ qa.page = (function () {
         replydiv.style.display = 'block';
         // highlight the question we selected a reply to
         if (msgid !== qa.rootParentId) {
-            document.getElementById("msg" + msgid).className = "selected";
+            document.getElementById("msg" + msgid).className = "message selected";
         }
     }
 

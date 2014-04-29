@@ -48,14 +48,7 @@ qa.callbacks = (function () {
     }
 
     function newmessageCall(resp) {
-        var depth;
-        // get message depth
-        if (resp.message.parentid === qa.rootParentId) {
-            depth = 0;
-        } else {
-            depth = qa.allMessages[resp.message.parentid].depth + 1;
-        }
-        qa.page.addmessage(resp.message, depth);
+        qa.page.addmessage(resp.message);
     }
 
     function changehandleCall(resp) {

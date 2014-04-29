@@ -5,10 +5,21 @@ html, body {
 
 body {
     font-family: "Share Tech Mono", monospace;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
 }
 
 #myhandle {
-    color: red;
+    color: #9B1728;
+}
+
+.other_handle {
+    color: black;
+}
+
+#editableHandle {
+    display: inline-block;
 }
 
 .message_reply {
@@ -17,7 +28,23 @@ body {
 .message_text {
 }
 
+.message_time {
+    font-size: 0.8em;
+    color: #5E6F7F;
+}
+.message {
+    border-top: 1px solid #5E6F7F;
+    width: 500px;
+}
+
+.message_reply a {
+    text-decoration: none;
+}
+
 .message_user {
+    display: block;
+    font-size: 1.0em;
+    color: #358EE5;
 }
 
 .not_selected {
@@ -25,5 +52,9 @@ body {
 }
 
 .selected {
-    background-color: yellow;
+    background-color: #FAFFB2;
+}
+
+#questiontree {
+    padding-bottom: 1%;
 }

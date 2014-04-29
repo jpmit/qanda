@@ -2,6 +2,7 @@
 
 import time
 import json
+import os
 
 import tornado.websocket
 import tornado.httpserver
@@ -15,6 +16,11 @@ _NCLIENTS = 0
 
 # print messages received and sent
 DEBUG = True
+
+class IndexHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(request):
+        request.render('static/qanda.html')
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
@@ -114,8 +120,14 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                 self.send_message_to_client(message, clientid)
 
 if __name__ == "__main__":
+    # path to all static data
+    _dirname = os.path.dirname(__file__)
+    static_path = os.path.join(_dirname, 'static')
+
     app = tornado.web.Application([
-        (r'/', WebSocketHandler)
+        (r'/', IndexHandler),
+        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path}),
+        (r'/ws', WebSocketHandler)
     ])
 
     http_server = tornado.httpserver.HTTPServer(app)

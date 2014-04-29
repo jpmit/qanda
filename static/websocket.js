@@ -14,7 +14,7 @@
 var ws = (function () {
 
     // configuation options
-    var wsUri = "ws://localhost:9500/",
+    var wsUri = "ws://localhost:9500/ws",
         simLatency = 50, // simulated latency (one way trip time) in ms
         debug = true,    // print messages sent and received to console
         dummy = false,   // if dummy, no messages sent/received

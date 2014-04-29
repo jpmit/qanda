@@ -157,7 +157,9 @@ qa.page = (function () {
         var txt = mymsg.value,
             msg = {'mtype': 'response', 'text': txt, 'replyid': replyid};
         // set the parent div to not_selected
-        document.getElementById("msg" + replyid).className = "message not_selected";
+        if (replyid !== qa.rootParentId) {
+            document.getElementById("msg" + replyid).className = "message not_selected";
+        }
         qa.send(msg);
         mymsg.value = '';
         replydiv.style.display = 'none';

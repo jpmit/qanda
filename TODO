@@ -1,8 +1,7 @@
-* sort out users disconnecting
 * allow adding root questions
-* allow changing username
 * sort out javascript client, especially main data structures
 * sort out python code, especially where everything is
 * some CSS formatting and layout
 * add persistence (database)
 * allow users to upload a photo
+* deploy on Heroku

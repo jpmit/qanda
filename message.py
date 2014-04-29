@@ -41,6 +41,7 @@ def message_changehandle(wshandler, msg):
     
     wshandler.listeners[msg["id"]].handle = msg["handle"]
 
+
 def message_response(wshandler, msg):
     """Called when we receive a reply from the client."""
 
@@ -52,6 +53,7 @@ def message_response(wshandler, msg):
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': newmsg} 
     wshandler.send_message_to_all(sendmsg)
+
 
 # callbacks
 CALLBACKS = {M_RESPONSE: message_response,

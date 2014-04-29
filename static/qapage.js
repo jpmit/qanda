@@ -3,22 +3,16 @@
 
 'use strict';
 
+/*jslint browser:true */
+
 var qa = qa || {};
 
 qa.page = (function () {
-    var sendform, handleEdit;
-
-    handleEdit = document.getElementById("editableHandle");
-    handleDiv = document.getElementById("myhandle");
-    handleEdit.onkeyup = function () {
-        setMyIdHandle(qa.myid, handleEdit.value);
-    };
-    // we send the message to the server onchange i.e. only when
-    // handleEdit loses focus.
-    handleEdit.onchange = function () {
-        qa.send({'mtype': 'changehandle', 
-                 'handle': handleEdit.value});
-    };
+    var sendform = document.getElementById("sendmessage"),
+        handleEdit = document.getElementById("editableHandle"),
+        myhandleDiv = document.getElementById("myhandle"),
+        mymsg = document.getElementById("msgtxt"),
+        replyid;
 
     function setMyIdHandle(id, handle) {
         // store my id
@@ -26,8 +20,18 @@ qa.page = (function () {
         // write handle to the editable text box
         handleEdit.value = handle;
         // write handle name to the list of users
-        handleDiv.innerHTML = handle;
+        myhandleDiv.innerHTML = handle;
     }
+
+    handleEdit.onkeyup = function () {
+        setMyIdHandle(qa.myid, handleEdit.value);
+    };
+    // we send the message to the server onchange i.e. only when
+    // handleEdit loses focus.
+    handleEdit.onchange = function () {
+        qa.send({'mtype': 'changehandle',
+                 'handle': handleEdit.value});
+    };
 
     function addNewHandle(id, handle) {
         var handlesDiv = document.getElementById('handles'),
@@ -79,9 +83,10 @@ qa.page = (function () {
     }
 
     function setReplyId(msgid) {
-        console.log(msgid);
-        var rply,
-            msg = qa.allMessages["" + msgid];
+        var msg = qa.allMessages[msgid.toString()];
+        if (replyid !== undefined) {
+            document.getElementById("msg" + replyid).style.color = "black";
+        }
         // set replyid in outer scope
         replyid = msgid;
         // display the msg id and message to reply to above the text box
@@ -89,15 +94,15 @@ qa.page = (function () {
         document.getElementById("replymessage").innerHTML = msg.message;
         // display the text box
         sendform.style.display = 'block';
+        // highlight the question we selected a reply to
+        document.getElementById("msg" + msgid).style.color = "red";
     }
 
     // send message
-    sendform = document.getElementById("sendmessage");
-    mymsg = document.getElementById("msgtxt");
     sendform.style.display = 'none';
-    sendform.onsubmit = function () { 
+    sendform.onsubmit = function () {
         var txt = mymsg.value,
-            msg = {'mtype': 'response', 'text': txt, 'replyid': replyid}
+            msg = {'mtype': 'response', 'text': txt, 'replyid': replyid};
         qa.send(msg);
         mymsg.value = '';
         return false; // don't refresh page

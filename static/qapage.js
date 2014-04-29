@@ -46,10 +46,14 @@ qa.page = (function () {
         handlesDiv.appendChild(hdiv);
     }
 
+    function changeHandle(id, newhandle) {
+        document.getElementById("user" + id).innerHTML = newhandle;
+    }
+
     function removeHandle(id) {
         var handleDiv = document.getElementById("user" + id);
         // remove from store
-        delete qa.currentUsers[id];
+        delete qa.currentUsers["" + id];
         // remove from document
         handleDiv.parentNode.removeChild(handleDiv);
     }
@@ -143,6 +147,7 @@ qa.page = (function () {
     return {'setMyIdHandle': setMyIdHandle,
             'addNewHandle': addNewHandle,
             'removeHandle': removeHandle,
+            'changeHandle': changeHandle,
             'addmessage': addmessage,
             'showReplyDiv': showReplyDiv};
 }());

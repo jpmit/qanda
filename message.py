@@ -31,15 +31,22 @@ M_FULLTREE = 'fulltree'
 M_NEWMESSAGE = 'newmessage'
 # message types from client to server
 M_RESPONSE = 'response'
+M_HEARTBEAT = 'heartbeat'
+# message types both ways
 M_CHANGEHANDLE = 'changehandle'
 
 ALLOWED_MESSAGES = [M_TEST, M_MYHANDLE, M_NEWHANDLE, M_REMOVEHANDLE,
-                    M_FULLTREE, M_NEWMESSAGE, M_RESPONSE, M_CHANGEHANDLE]
+                    M_FULLTREE, M_NEWMESSAGE, M_RESPONSE, M_HEARTBEAT, M_CHANGEHANDLE]
+
 
 def message_changehandle(wshandler, msg):
     """Called when the client changes his/her handle."""
     
-    wshandler.listeners[msg["id"]].handle = msg["handle"]
+    userid = msg["id"]
+    newhandle = msg["handle"]
+    wshandler.listeners[userid].handle = newhandle
+
+    wshandler.send_message_to_all_except({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, userid)
 
 
 def message_response(wshandler, msg):
@@ -54,10 +61,16 @@ def message_response(wshandler, msg):
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': newmsg} 
     wshandler.send_message_to_all(sendmsg)
 
+def message_ignore(wshandler, msg):
+    """Just ignore the message."""
+
+    pass
+
 
 # callbacks
 CALLBACKS = {M_RESPONSE: message_response,
-             M_CHANGEHANDLE: message_changehandle}
+             M_CHANGEHANDLE: message_changehandle,
+             M_HEARTBEAT: message_ignore}
 
 
 def to_json(pyo):

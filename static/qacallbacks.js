@@ -50,12 +50,17 @@ qa.callbacks = (function () {
     function newmessageCall(resp) {
         var depth;
         // get message depth
-        if (resp.message.parentid === -1) {
+        if (resp.message.parentid === qa.rootParentId) {
             depth = 0;
         } else {
             depth = qa.allMessages[resp.message.parentid].depth + 1;
         }
         qa.page.addmessage(resp.message, depth);
+    }
+
+    function changehandleCall(resp) {
+        qa.currentUsers[resp.changeid.toString()] = resp.newhandle;
+        qa.page.changeHandle(resp.changeid, resp.newhandle);
     }
 
     // callbacks for the different message types that can be received
@@ -69,7 +74,9 @@ qa.callbacks = (function () {
         // received when someone leaves the room
         'removehandle': removehandleCall,
         // received when a new message is posted
-        'newmessage': newmessageCall
+        'newmessage': newmessageCall,
+        // received when *another* client has changed their handle
+        'changehandle': changehandleCall
     };
     ws.setCallBacks(cbacks);
 

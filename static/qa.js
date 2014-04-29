@@ -14,6 +14,15 @@ qa.send = function (message) {
     ws.send(JSON.stringify(message));
 };
 
+qa.heartBeat = true;  // send regular heartbeats to the server?
+qa.heartBeatT = 5000; // time (in ms) between each heartbeat
+
+if (qa.heartBeat) {
+    window.setInterval(function () {
+        qa.send({'mtype': 'heartbeat'}, qa.heartBeatT);
+    }, qa.heartBeatT);
+}
+
 // currentUsers maps client ids to client handles (usernames)
 qa.currentUsers = {};
 

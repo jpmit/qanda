@@ -18,8 +18,11 @@ body {
     color: black;
 }
 
+#myimage {
+}
+
 #editableHandle {
-    display: inline-block;
+    width:120px;
 }
 
 .message_reply {
@@ -57,4 +60,13 @@ body {
 
 #questiontree {
     padding-bottom: 1%;
+}
+
+#userpanel {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#questionpanel {
+    display: inline-block;
 }

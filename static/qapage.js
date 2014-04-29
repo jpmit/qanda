@@ -68,10 +68,11 @@ qa.page = (function () {
             timeSpan = document.createElement('span'),
             textDiv = document.createElement('div'),
             replySpan = document.createElement('span'),
-            padHTML = "",
+            pidString = msg.parentid.toString(),
             isRoot = (msg.parentid === qa.rootParentId),
             parentmsg = isRoot ? {} : qa.allMessages[msg.parentid],
             depth = isRoot ? 0 : parentmsg.depth + 1,
+            divWidth,
             i;
 
         // store the message
@@ -83,12 +84,22 @@ qa.page = (function () {
             pDivId = "questiontree";
         } else {
             pDivId = "msg" + msg.parentid;
+            // add to children store
+            if (!qa.children.hasOwnProperty(pidString)) {
+                qa.children[pidString] = [msg.id];
+            } else {
+                qa.children[pidString].push(msg.id);
+            }
         }
         pDiv = document.getElementById(pDivId);
         // the message div
         messageDiv.className = "message not_selected";
         messageDiv.id = "msg" + msg.id;
-        messageDiv.style.marginLeft = "" + 50 * depth + "px";
+        if (depth > 0) {
+            messageDiv.style.marginLeft = "80px";
+            divWidth = Math.max(180, 500 - 80*depth);
+            messageDiv.style.width = divWidth + "px";
+        }
         // user who posted the message
         userSpan.className = "message_user";
         userSpan.innerHTML = msg.user;
@@ -145,6 +156,8 @@ qa.page = (function () {
     sendform.onsubmit = function () {
         var txt = mymsg.value,
             msg = {'mtype': 'response', 'text': txt, 'replyid': replyid};
+        // set the parent div to not_selected
+        document.getElementById("msg" + replyid).className = "message not_selected";
         qa.send(msg);
         mymsg.value = '';
         replydiv.style.display = 'none';

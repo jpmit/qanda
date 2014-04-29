@@ -31,6 +31,7 @@ qa.callbacks = (function () {
         }
     }
 
+    // this gets executed only once, when we first visit the page
     function fulltreeCall(resp) {
         var i,
             tree = resp.tree,

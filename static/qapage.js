@@ -9,8 +9,10 @@ var qa = qa || {};
 
 qa.page = (function () {
     var sendform = document.getElementById("sendmessage"),
+        replydiv = document.getElementById("replydiv"),
         handleEdit = document.getElementById("editableHandle"),
         myhandleDiv = document.getElementById("myhandle"),
+        addQuestionButton = document.getElementById("addquestion"),
         mymsg = document.getElementById("msgtxt"),
         replyid;
 
@@ -54,9 +56,13 @@ qa.page = (function () {
 
     // draw a message on the HTML document
     function addmessage(msg, depth) {
-        var pdivId,
-            pdiv,
-            qdiv,
+        var pDivId,
+            pDiv,
+            messageDiv = document.createElement('div'),
+            userSpan = document.createElement('span'),
+            timeSpan = document.createElement('span'),
+            textDiv = document.createElement('div'),
+            replySpan = document.createElement('span'),
             padHTML = "",
             i;
         // store the message
@@ -64,53 +70,79 @@ qa.page = (function () {
         qa.allMessages[msg.id] = msg;
 
         // get the parent div
-        if (msg.parentid === -1) {
-            pdivId = "questiontree";
+        if (msg.parentid === qa.rootParentId) {
+            pDivId = "questiontree";
         } else {
-            pdivId = "msg" + msg.parentid;
+            pDivId = "msg" + msg.parentid;
         }
-        pdiv = document.getElementById(pdivId);
-        qdiv = document.createElement('div');
-        qdiv.id = "msg" + msg.id;
-        // hacky way to indent question responses (should use CSS)
-        console.log(depth);
-        for (i = 0; i < depth; i += 1) {
-            padHTML += "&nbsp;&nbsp;&nbsp;&nbsp;";
-        }
-        qdiv.innerHTML = padHTML + "[" + msg.user + "]" + msg.posttime + "</br>" + padHTML + msg.message + "<a href=javascript:void(0) onclick=qa.page.setReplyId(" + msg.id + ");>Reply</a>";
-        // add the div
-        pdiv.appendChild(qdiv);
+        pDiv = document.getElementById(pDivId);
+        // the message div
+        messageDiv.className = "not_selected";
+        messageDiv.id = "msg" + msg.id;
+        messageDiv.style.paddingLeft = "" + 10 * depth + "px";
+        // user who posted the message
+        userSpan.className = "message_user";
+        userSpan.innerHTML = msg.user;
+        // time the message was posted
+        timeSpan.innerHTML = " " + msg.posttime;
+        // the actual message text itself
+        textDiv.className = "message_text";
+        textDiv.innerHTML = msg.message;
+        // the reply link
+        replySpan.className = "message_reply";
+        replySpan.innerHTML = "<a href=javascript:void(0) onclick=qa.page.showReplyDiv(" + msg.id + ");>Reply</a>";
+
+        messageDiv.appendChild(userSpan);
+        messageDiv.appendChild(timeSpan);
+        messageDiv.appendChild(textDiv);
+        messageDiv.appendChild(replySpan);
+        pDiv.appendChild(messageDiv);
     }
 
-    function setReplyId(msgid) {
-        var msg = qa.allMessages[msgid.toString()];
-        if (replyid !== undefined) {
-            document.getElementById("msg" + replyid).style.color = "black";
+    function showReplyDiv(msgid) {
+        console.log(msgid);
+        var parentMsg,
+            replyMessage;
+        if (msgid === qa.rootParentId) {
+            replyMessage = "Add new question";
+            document.getElementById("replybutton").value = "Post";
+        } else {
+            parentMsg = qa.allMessages[msgid.toString()];
+            replyMessage = parentMsg.user + " wrote: " + parentMsg.message;
+            document.getElementById("replybutton").value = "Reply";
+        }
+
+        if (replyid !== undefined && replyid !== qa.rootParentId) {
+            document.getElementById("msg" + replyid).className = "not_selected";
         }
         // set replyid in outer scope
         replyid = msgid;
-        // display the msg id and message to reply to above the text box
-        document.getElementById("replyuser").innerHTML = msg.user + " wrote:";
-        document.getElementById("replymessage").innerHTML = msg.message;
+        // message above the reply box
+        document.getElementById("replymessage").innerHTML = replyMessage;
         // display the text box
-        sendform.style.display = 'block';
+        replydiv.style.display = 'block';
         // highlight the question we selected a reply to
-        document.getElementById("msg" + msgid).style.color = "red";
+        if (msgid !== qa.rootParentId) {
+            document.getElementById("msg" + msgid).className = "selected";
+        }
     }
 
     // send message
-    sendform.style.display = 'none';
+    replydiv.style.display = 'none';
     sendform.onsubmit = function () {
         var txt = mymsg.value,
             msg = {'mtype': 'response', 'text': txt, 'replyid': replyid};
         qa.send(msg);
         mymsg.value = '';
+        replydiv.style.display = 'none';
         return false; // don't refresh page
     };
+
+    addQuestionButton.onclick = function () {showReplyDiv(qa.rootParentId);}
 
     return {'setMyIdHandle': setMyIdHandle,
             'addNewHandle': addNewHandle,
             'removeHandle': removeHandle,
             'addmessage': addmessage,
-            'setReplyId': setReplyId};
+            'showReplyDiv': showReplyDiv};
 }());

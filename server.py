@@ -15,12 +15,23 @@ import message
 _NCLIENTS = 0
 
 # print messages received and sent
-DEBUG = True
+DEBUG = False
 
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(request):
         request.render('index.html')
+
+    def set_extra_headers(self, path):
+        """Disable caching."""
+        self.set_header('Cache-Control', 
+                        'no-store, no-cache, must-revalidate, max-age=0')
+
+class MyStaticFileHandler(tornado.web.StaticFileHandler):
+    def set_extra_headers(self, path):
+        """Disable caching."""
+        self.set_header('Cache-Control', 
+                        'no-store, no-cache, must-revalidate, max-age=0')
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
@@ -126,7 +137,7 @@ if __name__ == "__main__":
 
     app = tornado.web.Application([
         (r'/', IndexHandler),
-        (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path}),
+        (r'/static/(.*)', MyStaticFileHandler, {'path': static_path}),
         (r'/ws', WebSocketHandler)
     ])
 

@@ -17,16 +17,19 @@
     <h2>Questions</h2>
     <div id="questiontree">
     </div>
+    <div>
+      <button type="button" id="addquestion">Add question</button>
+    </div>
     <hr>
-    <div id="replyuser">
+    <div id="replydiv">
+      <div id="replymessage">
+      </div>
+      <form id="sendmessage" action="">
+        <textarea id="msgtxt" rows="5" cols="50"></textarea>
+        <br/>
+        <input id="replybutton" type="submit" value="Reply"/>
+      </form>
     </div>
-    <div id="replymessage">
-    </div>
-    <form id="sendmessage" action="">
-      <textarea id="msgtxt" rows="5" cols="50"></textarea>
-      <br/>
-      <input type="submit" value="Reply"/>
-    </form>
     <script src="static/websocket.js"></script>
     <script src="static/qa.js"></script>
     <script src="static/qacallbacks.js"></script>

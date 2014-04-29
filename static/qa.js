@@ -19,3 +19,6 @@ qa.currentUsers = {};
 
 // allMessages key is message id, item is the message
 qa.allMessages = {};
+
+// parent id for 'root' (top level) messages
+qa.rootParentId = -1;

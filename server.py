@@ -20,7 +20,7 @@ DEBUG = True
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(request):
-        request.render('static/qanda.html')
+        request.render('index.html')
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     ])
 
     http_server = tornado.httpserver.HTTPServer(app)
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 9500))
     http_server.listen(port)
     main_loop = tornado.ioloop.IOLoop.instance()
     main_loop.start()

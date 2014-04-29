@@ -2,6 +2,7 @@
 // PolyFills that implement any functionality that the client might not have.
 
 'use strict';
+/*jslint browser:true */
 
 // set Date.now (for timestamp for engines that don't support it)
 if (!Date.now) {
@@ -11,6 +12,7 @@ if (!Date.now) {
 }
 
 // http://stackoverflow.com/questions/4793604/
-document.insertAfter = function(referenceNode, newNode) {
+document.insertAfter = function (referenceNode, newNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
-}
+};
+

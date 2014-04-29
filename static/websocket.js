@@ -18,8 +18,6 @@ var ws = (function () {
         simLatency = 50,  // simulated latency (one way trip time) in ms
         debug = true,     // print messages sent and received to console
         dummy = false,    // if dummy, no messages sent/received
-        heartBeat = true, // send hearbeat?
-        heartBeatT = 5000,// time (in ms) between each heartbeat
         callbacks,
         webSocket;
 

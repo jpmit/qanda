@@ -54,7 +54,7 @@ qa.page = (function () {
     function removeHandle(id) {
         var handleDiv = document.getElementById("user" + id);
         // remove from store
-        delete qa.currentUsers["" + id];
+        delete qa.currentUsers[id.toString()];
         // remove from document
         handleDiv.parentNode.removeChild(handleDiv);
     }
@@ -68,12 +68,10 @@ qa.page = (function () {
             timeSpan = document.createElement('span'),
             textDiv = document.createElement('div'),
             replySpan = document.createElement('span'),
-            pidString = msg.parentid.toString(),
             isRoot = (msg.parentid === qa.rootParentId),
             parentmsg = isRoot ? {} : qa.allMessages[msg.parentid],
             depth = isRoot ? 0 : parentmsg.depth + 1,
-            divWidth,
-            i;
+            divWidth;
 
         // store the message
         msg.depth = depth;
@@ -84,12 +82,6 @@ qa.page = (function () {
             pDivId = "questiontree";
         } else {
             pDivId = "msg" + msg.parentid;
-            // add to children store
-            if (!qa.children.hasOwnProperty(pidString)) {
-                qa.children[pidString] = [msg.id];
-            } else {
-                qa.children[pidString].push(msg.id);
-            }
         }
         pDiv = document.getElementById(pDivId);
         // the message div
@@ -97,7 +89,7 @@ qa.page = (function () {
         messageDiv.id = "msg" + msg.id;
         if (depth > 0) {
             messageDiv.style.marginLeft = "80px";
-            divWidth = Math.max(180, 500 - 80*depth);
+            divWidth = Math.max(180, 500 - 80 * depth);
             messageDiv.style.width = divWidth + "px";
         }
         // user who posted the message
@@ -166,7 +158,7 @@ qa.page = (function () {
         return false; // don't refresh page
     };
 
-    addQuestionButton.onclick = function () {showReplyDiv(qa.rootParentId);}
+    addQuestionButton.onclick = function () { showReplyDiv(qa.rootParentId); };
 
     return {'setMyIdHandle': setMyIdHandle,
             'addNewHandle': addNewHandle,

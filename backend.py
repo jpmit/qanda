@@ -3,10 +3,11 @@
 import time
 import json
 import uuid
-import message
 from tornado.websocket import WebSocketClosedError
 
-_DEBUG = True
+from settings import *
+import message
+import db
 
 class User(object):
     """Each user has the following attributes:
@@ -28,7 +29,8 @@ class User(object):
 class BackEnd(object):
     def __init__(self):
         self.users = {}
-        self.message_tree = message.MessageTree()
+        self.db = db.message_database()
+        self.message_tree = message.MessageTree(self.db.get_all_messages())
         
     def add_user(self, handler):
         """handler is an instance of tornado.websocket.WebSocketHandler.
@@ -59,8 +61,8 @@ class BackEnd(object):
 
         # send new handle to all the other clients
         self.send_message_to_all_except({message.K_TYPE: message.M_NEWHANDLE,
-                                         'handle': u.handle, 'userid': u.userid}, 
-                                        u.userid)
+                                         'handle': u.handle, 
+                                         'userid': u.userid}, u.userid)
 
     def remove_user(self, handler):
         # not ideal (probably)
@@ -77,12 +79,12 @@ class BackEnd(object):
                                             closeid)
             del self.users[closeid]
         else:
-            if _DEBUG:
+            if DEBUG:
                 print 'could not find id to close!'
 
     def on_message(self, mess):
 
-        if _DEBUG:
+        if DEBUG:
             print 'GOT MESSAGE: {}'.format(mess)
 
         msg = json.loads(mess)
@@ -93,7 +95,7 @@ class BackEnd(object):
         # check that the auth_token is correct for the client
         uid = msg[message.K_ID]
         if (msg[message.K_AUTH] != self.users[uid].auth_token):
-            if _DEBUG:
+            if DEBUG:
                 print 'received incorrect auth_token for client {0}'\
                     .format(uid)
             return
@@ -114,7 +116,7 @@ class BackEnd(object):
         # add timestamp and stringify the message
         messagedict[message.K_TSTAMP] = time.time()*1000
         jsonmsg = json.dumps(messagedict, default=message.to_json)
-        if _DEBUG:
+        if DEBUG:
             print 'SENDING MESSAGE: {}'.format(jsonmsg)
         
         try:

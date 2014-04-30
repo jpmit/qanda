@@ -8,9 +8,10 @@ import tornado.ioloop
 import tornado.web
 
 import backend
+import settings
 
 # print messages received and sent
-_DEBUG = True
+_DEBUG = settings.DEBUG
 
 # the backend handles all application logic
 _backend = backend.BackEnd()

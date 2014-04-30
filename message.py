@@ -13,6 +13,8 @@ import json
 import datetime
 from copy import deepcopy
 
+from settings import *
+
 ID_ALL = -1 # message id for a message to sent to all clients
 
 K_TYPE = 'mtype'
@@ -56,7 +58,10 @@ def message_response(back, msg):
     user = back.users[msg["userid"]].handle
 
     mnode = MessageNode(user, msg["text"], msg["replyid"])
+    # add to the message tree
     newmsg = back.message_tree.add_message(mnode)
+    # add to the db
+    back.db.add_message(to_json(mnode))
 
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': newmsg} 
@@ -72,6 +77,7 @@ def message_ignore(back, msg):
 CALLBACKS = {M_RESPONSE: message_response,
              M_CHANGEHANDLE: message_changehandle,
              M_HEARTBEAT: message_ignore}
+_POSTTIME_FORMAT = '%d %B %Y %H:%M'
 
 def to_json(pyo):
     """Define JSON serialization for MessageNode object."""
@@ -80,35 +86,36 @@ def to_json(pyo):
                 'message': pyo.message,
                 'id': pyo.id,
                 'parentid': pyo.parentid,
-                'posttime': pyo.posttime.strftime('%d %B %Y %H:%M')}
+                'posttime': pyo.posttime.strftime(_POSTTIME_FORMAT)}
 
     raise TypeError(repr(pyo) + ' is not JSON serializable') 
 
+def mnode_from_json(msg):
+    return MessageNode(msg['user'], msg['message'], msg['parentid'],
+                       datetime.datetime.strptime(msg['posttime'],
+                                                  _POSTTIME_FORMAT))
 
-# each message gets an ID (starts at zero)
-_MESSAGE_ID = 0
 # a message with parentid of _PARENTID_ROOT is a root message
 _PARENTID_ROOT = -1
 
 
 class MessageNode(object):
     def __init__(self, user, message, parentid, posttime=None):
-        global _MESSAGE_ID
         self.user = user
         self.message = message
-        self.id = _MESSAGE_ID
+        self.id = MessageTree.num_messages
         self.parentid = parentid
         if posttime is None:
             posttime = datetime.datetime.now()
         self.posttime = posttime
-            
-        _MESSAGE_ID += 1
-
 
 class MessageTree(object):
     """Class to store all messages in the Q&A session."""
 
-    def __init__(self):
+    # number of messages in tree
+    num_messages = 0
+
+    def __init__(self, messages=[]):
         
         # store ids of the root nodes (in the correct display order)
         self._rootnodes = []
@@ -118,13 +125,8 @@ class MessageTree(object):
         # keys are the node ids, values are the actual MessageNode objects
         self._messages = {}
 
-        # create a couple of amusing root nodes
-        m1 = MessageNode('admin', 'What do you think is the significance of coffee?',
-                         _PARENTID_ROOT, datetime.datetime(2014, 04, 28, 20, 48))
-        m2 = MessageNode('admin', 'How important are the bananas in Timbuktu?',
-                         _PARENTID_ROOT, datetime.datetime(2014, 04, 28, 20, 45))
-        self.add_message(m1)
-        self.add_message(m2)
+        for msg in messages:
+            self.add_message(mnode_from_json(msg))
 
     def add_message(self, mnode):
         mnodeid = mnode.id
@@ -135,6 +137,7 @@ class MessageTree(object):
             self._children[parentid].append(mnodeid)
         self._children[mnodeid] = []
         self._messages[mnodeid] = mnode
+        MessageTree.num_messages += 1
 
         return mnode
 

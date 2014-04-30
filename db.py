@@ -83,6 +83,7 @@ class PostgresDb(MessageDb):
         try:
             self.cursor.execute('SELECT * FROM messages')
         except psycopg2.ProgrammingError:
+            self.conn.commit()
             self.create_tables()
             self.cursor.execute('SELECT * FROM messages')
         messages = self.cursor.fetchall()
@@ -91,13 +92,12 @@ class PostgresDb(MessageDb):
     def create_tables(self):
         try:
             # not 'user' is a reserved work is psql so we use 'uname' instead
-            self.cursor.execute('CREATE TABLE messages(id INT PRIMARY KEY, ' 
-                                'uname VARCHAR(50), message TEXT, parentid INT, '
-                                'posttime VARCHAR(50))')
+            self.cursor.execute('CREATE TABLE messages (id INT PRIMARY KEY, '
+                                'uname VARCHAR(50), message TEXT, '
+                                'parentid INT, posttime VARCHAR(50) )')
+            self.conn.commit()
         except psycopg2.ProgrammingError:
             pass
-        else:
-            self.conn.commit()
 
 if (DB_TYPE == DB_FILE):
     message_database = FileDb

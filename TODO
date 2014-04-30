@@ -2,5 +2,4 @@
 * some CSS formatting and layout
 * add persistence (database)
 * allow users to upload a photo
-* don't nest the message divs!
 * a + and - expandable thing for each message

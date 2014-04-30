@@ -10,11 +10,11 @@ var qa = qa || {};
 qa.callbacks = (function () {
 
     function myhandleCall(resp) {
-        qa.page.setMyIdHandle(resp.myid, resp.handle);
+        qa.page.setMyIdHandle(resp.userid, resp.handle, resp.auth_token);
     }
 
     function newhandleCall(resp) {
-        qa.page.addNewHandle(resp.id, resp.handle);
+        qa.page.addNewHandle(resp.userid, resp.handle);
     }
 
     function addMessageDfs(tree, msg, depth) {
@@ -45,7 +45,7 @@ qa.callbacks = (function () {
     }
 
     function removehandleCall(resp) {
-        qa.page.removeHandle(resp.id);
+        qa.page.removeHandle(resp.userid);
     }
 
     function newmessageCall(resp) {

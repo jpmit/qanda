@@ -16,10 +16,11 @@ from copy import deepcopy
 ID_ALL = -1 # message id for a message to sent to all clients
 
 K_TYPE = 'mtype'
-K_ID = 'id'
+K_ID = 'userid'
+K_AUTH = 'auth_token'
 K_TSTAMP = 'tstamp'
 
-REQUIRED_MESSAGE_KEYS = [K_TYPE, K_ID]
+REQUIRED_MESSAGE_KEYS = [K_TYPE, K_ID, K_AUTH]
 
 # messsage types
 M_TEST = 'test'
@@ -39,29 +40,29 @@ ALLOWED_MESSAGES = [M_TEST, M_MYHANDLE, M_NEWHANDLE, M_REMOVEHANDLE,
                     M_FULLTREE, M_NEWMESSAGE, M_RESPONSE, M_HEARTBEAT, M_CHANGEHANDLE]
 
 
-def message_changehandle(wshandler, msg):
+def message_changehandle(back, msg):
     """Called when the client changes his/her handle."""
     
-    userid = msg["id"]
+    userid = msg["userid"]
     newhandle = msg["handle"]
-    wshandler.listeners[userid].handle = newhandle
+    back.users[userid].handle = newhandle
 
-    wshandler.send_message_to_all_except({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, userid)
+    back.send_message_to_all_except({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, userid)
 
 
-def message_response(wshandler, msg):
+def message_response(back, msg):
     """Called when we receive a reply from the client."""
 
-    user = wshandler.listeners[msg["id"]].handle
+    user = back.users[msg["userid"]].handle
 
     mnode = MessageNode(user, msg["text"], msg["replyid"])
-    newmsg = wshandler.message_tree.add_message(mnode)
+    newmsg = back.message_tree.add_message(mnode)
 
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': newmsg} 
-    wshandler.send_message_to_all(sendmsg)
+    back.send_message_to_all(sendmsg)
 
-def message_ignore(wshandler, msg):
+def message_ignore(back, msg):
     """Just ignore the message."""
 
     pass
@@ -71,7 +72,6 @@ def message_ignore(wshandler, msg):
 CALLBACKS = {M_RESPONSE: message_response,
              M_CHANGEHANDLE: message_changehandle,
              M_HEARTBEAT: message_ignore}
-
 
 def to_json(pyo):
     """Define JSON serialization for MessageNode object."""

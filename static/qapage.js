@@ -16,9 +16,11 @@ qa.page = (function () {
         mymsg = document.getElementById("msgtxt"),
         replyid;
 
-    function setMyIdHandle(id, handle) {
+    function setMyIdHandle(userId, handle, authToken) {
         // store my id
-        qa.myid = id;
+        qa.userId = userId;
+        // authToken is sent with every message
+        qa.authToken = authToken;
         // write handle to the editable text box
         handleEdit.value = handle;
         // write handle name to the list of users

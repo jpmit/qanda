@@ -2,35 +2,78 @@
 
 import time
 import json
-import uuid
 from tornado.websocket import WebSocketClosedError
 
 from settings import *
 import message
 import db
+from models import Topic, User
 
-class User(object):
-    """Each user has the following attributes:
-
-    userid     - a unique id assigned by the application
-    handle     - username
-    auth_token - an unique authentication token that the client needs
-                 to send with every message
-    """
-
-    nusers = 0 # number of users created so far (used as id)
-
-    def __init__(self):
-        self.userid = self.nusers
-        self.handle = 'user{0}'.format(self.userid)
-        self.auth_token = str(uuid.uuid4())
-        User.nusers += 1
         
 class BackEnd(object):
     def __init__(self):
-        self.users = {}
+
         self.db = db.message_database()
-        self.message_tree = message.MessageTree(self.db.get_all_messages())
+        # userids as keys, user objects as values
+        self.users = {}
+        # topicids as keys, topic objects as values
+        self.topics = {}
+        # load all existing topics and their messages
+        topics = self.db.get_all_topics()
+        for t in topics:
+            t.message_tree = message.MessageTree(self.db.get_all_messages(t.topicid))
+            self.topics[t.topicid] = t
+
+    def add_topic(self, name):
+        """Return True if successfully added topic."""
+
+        for t in self.topics.values():
+            if (t.name == name):
+                return False
+        newt = Topic(name)
+        self.topics[newt.topicid] = newt
+        # add to db
+        self.db.add_topic(newt)
+        return True
+
+    def set_topic_for_user(self, userid, topicid):
+        try:
+            u = self.users[userid]
+        except:
+            # user must have disconnected
+            pass
+        else:
+            u._topicid = topicid
+            t = self.topics[topicid]
+            t.add_user(userid)
+            # send all other handles to user
+            for uid in self.topics[topicid].users:
+                if uid != userid:
+                    user = self.users[uid]
+                    self.send_message({message.K_TYPE: message.M_NEWHANDLE,
+                                       'handle': user.handle, 
+                                       'userid': uid}, userid)
+
+            # send all messages in topic message tree to client
+            self.send_message({message.K_TYPE: message.M_FULLTREE,
+                               'tree': t.get_all_messages()},
+                              userid)
+
+            # send new handle to all the other clients on this topic
+            for uid in self.topics[topicid].users:
+                if uid != userid:
+                    self.send_message({message.K_TYPE: message.M_NEWHANDLE,
+                                       'handle': u.handle, 
+                                       'userid': userid}, uid)
+
+    def get_topics(self):
+        return self.topics.values()
+
+    def get_topicid_from_url(self, url):
+        for t in self.topics.values():
+            if (t.urlname == url):
+                return t.topicid
+        return Topic.NOID
         
     def add_user(self, handler):
         """handler is an instance of tornado.websocket.WebSocketHandler.
@@ -47,23 +90,6 @@ class BackEnd(object):
                            'handle': u.handle, 'userid': u.userid,
                            'auth_token': u.auth_token}, u.userid)
 
-        # send all other handles to user
-        for (userid, user) in self.users.items():
-            if userid != u.userid:
-                self.send_message({message.K_TYPE: message.M_NEWHANDLE,
-                                   'handle': user.handle, 
-                                   'userid': userid}, u.userid)
-
-        # send all messages in tree to client
-        self.send_message({message.K_TYPE: message.M_FULLTREE,
-                           'tree': self.message_tree.get_all_messages()},
-                          u.userid)
-
-        # send new handle to all the other clients
-        self.send_message_to_all_except({message.K_TYPE: message.M_NEWHANDLE,
-                                         'handle': u.handle, 
-                                         'userid': u.userid}, u.userid)
-
     def remove_user(self, handler):
         # not ideal (probably)
         closeid = None
@@ -74,9 +100,13 @@ class BackEnd(object):
                 break
 
         if closeid is not None:
-            self.send_message_to_all_except({message.K_TYPE: message.M_REMOVEHANDLE,
-                                             'userid': closeid},
-                                            closeid)
+            u = self.users[closeid]
+            for uid in self.topics[u._topicid].users:
+                if uid != closeid:
+                    self.send_message({message.K_TYPE: message.M_REMOVEHANDLE,
+                                       'userid': closeid},
+                                      uid)
+            self.topics[u._topicid].remove_user(closeid)
             del self.users[closeid]
         else:
             if DEBUG:
@@ -102,15 +132,6 @@ class BackEnd(object):
         
         # message ok, execute callback
         message.CALLBACKS[msg[message.K_TYPE]](self, msg)
-
-    def send_message_to_all_except(self, messagedict, userid):
-        for uid in self.users:
-            if (uid != userid):
-                self.send_message(messagedict, uid)
-
-    def send_message_to_all(self, messagedict):
-        for uid in self.users:
-            self.send_message(messagedict, uid)
 
     def send_message(self, messagedict, userid):
         # add timestamp and stringify the message

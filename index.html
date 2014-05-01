@@ -7,42 +7,29 @@
   <title>Q&A</title>
   </head>
   <body>
-    <div id="userpanel">
-      <div>My Handle:</div><input type="text" id="editableHandle"/>
-      <div>
-        <img id="myimage" src="static/silhoutte.gif" alt="my image">
+    <h2>Lobby</h2>
+    <div>
+      Join one of the current Q&As:
+      <div class="headings">
+        <span class="topic">topic</span>
+        <span class="users">users</span>
       </div>
-      <div id="handles">
-        <div>Current Users:</div>
-        <div id="myhandle"></div>
+      {% for topic in topics %}
+      <div class="qa">
+        <span class="name"><a href="/qa-{{ topic.urlname }}">{{ topic.name }}</a></span>
+        <span class="nusers">{{ topic.nusers }}</span>
       </div>
+      {% end %}
     </div>
-    <div id="questionpanel">
-      <h2>Questions</h2>
-      <div id="questiontree">
-      </div>
-      <div>
-        <button type="button" id="addquestion">Add question</button>
-      </div>
-      <div id="replydiv">
-        <div id="replymessage">
-        </div>
-        <form id="sendmessage" action="">
-          <textarea id="msgtxt" rows="5" cols="50"></textarea>
-          <br/>
-          <input id="replybutton" type="submit" value="Reply"/>
-        </form>
-      </div>
+    <div class="margintop">
+      Or, add a new topic:
+      <form action="" method="post">
+        <input type="text" name="topic" value="{{ topicname }}">
+        <input type="submit" value="Add">
+      </form>
+      {% if error %}
+      <span class="error">Topic name already exists</span>
+      {% end %}
     </div>
-    <script src="static/websocket.js"></script>
-    <script src="static/qa.js"></script>
-    <script src="static/qacallbacks.js"></script>
-    <script src="static/qafills.js"></script>
-    <script src="static/qapage.js"></script>
-    <script>
-      window.onload = function() {
-      ws.init();
-      };
-    </script>
   </body>
-</html>
+<html>

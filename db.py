@@ -10,6 +10,7 @@ import urlparse
 
 from settings import *
 from message import to_json
+from models import Topic
 
 class MessageDb(object):
     """Abstract base class."""
@@ -73,8 +74,7 @@ class PostgresDb(MessageDb):
                                      host=self.settings.get('host', None),
                                      port=self.settings.get('port', None))
         self.cursor = self.conn.cursor()
-        self.cursor.execute('SELECT version()')
-        ver = self.cursor.fetchone()
+        self.create_tables_if_not_exist()
 
     def _get_connection_information(self):
         """Set up settings dict."""
@@ -93,35 +93,55 @@ class PostgresDb(MessageDb):
                     'host': url.hostname,
                     'port': url.port}
 
-    def add_message(self, mdict):
-        query = 'INSERT INTO messages VALUES(%s, %s, %s, %s, %s)'
+    def add_message(self, mdict, topicid):
+        query = 'INSERT INTO messages VALUES(%s, %s, %s, %s, %s, %s)'
         self.cursor.execute(query, (mdict['id'], mdict['user'], 
                                     mdict['message'], mdict['parentid'],
-                                    mdict['posttime']))
+                                    mdict['posttime'],
+                                    topicid))
         self.conn.commit()
+
+    def add_topic(self, topic):
+        query = 'INSERT INTO topics VALUES(%s, %s)'
+        self.cursor.execute(query, (topic.topicid, topic.name))
+        self.conn.commit()
+
+    def get_all_topics(self):
+        self.cursor.execute('SELECT * FROM topics')
+        self.conn.commit()
+        topics = self.cursor.fetchall()
+        return [Topic(t[1], t[0]) for t in topics]
     
-    def get_all_messages(self):
-        try:
-            self.cursor.execute('SELECT * FROM messages')
-            self.conn.commit()
-        except psycopg2.ProgrammingError:
-            self.conn.commit()
-            try:
-                self.create_tables()
-            except psycopg2.ProgrammingError:
-                if DEBUG:
-                    print 'could not read messages from DB'
-                return []
-        self.cursor.execute('SELECT * FROM messages')
+    def get_all_messages(self, topicid):
+        self.cursor.execute('SELECT * FROM messages WHERE topicid=%s', (topicid,))
+        self.conn.commit()
         messages = self.cursor.fetchall()
         return [{'id': m[0], 'user': m[1], 'message': m[2], 'parentid': m[3],
                  'posttime': m[4]} for m in messages]
 
+    def create_tables_if_not_exist(self):
+        try:
+            self.cursor.execute('SELECT * FROM messages')
+            self.conn.commit()
+        except psycopg2.ProgrammingError:
+            # this will clear the previous transaction
+            self.conn.commit()
+            self.create_tables()
+
     def create_tables(self):
         # note 'user' is a reserved work is psql so we use 'uname' instead
-        self.cursor.execute('CREATE TABLE messages (id INT PRIMARY KEY, '
-                            'uname VARCHAR(50), message TEXT, '
-                            'parentid INT, posttime VARCHAR(50) )')
+        self.cursor.execute('CREATE TABLE topics ('
+                            'id       INT          NOT NULL PRIMARY KEY, '
+                            'name     VARCHAR(100) NOT NULL' 
+                            ')')
+        self.cursor.execute('CREATE TABLE messages ('
+                            'id       INT         NOT NULL PRIMARY KEY, '
+                            'uname    VARCHAR(50) NOT NULL, '
+                            'message  TEXT        NOT NULL, '
+                            'parentid INT         NOT NULL, '
+                            'posttime VARCHAR(50) NOT NULL, '
+                            'topicid  INT references topics(id) '
+                            ')')
         self.conn.commit()
 
 if (DB_TYPE == DB_FILE):

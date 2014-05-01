@@ -1,5 +1,5 @@
-* sort out python code, especially where everything is
-* some CSS formatting and layout
-* add persistence (database)
+* Add username to lobby page
+* Make lobby page websocket based 
+* Refactor backend, esp. sending of messages
 * allow users to upload a photo
 * a + and - expandable thing for each message

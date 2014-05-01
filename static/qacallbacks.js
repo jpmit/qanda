@@ -11,6 +11,8 @@ qa.callbacks = (function () {
 
     function myhandleCall(resp) {
         qa.page.setMyIdHandle(resp.userid, resp.handle, resp.auth_token);
+        // send back a response to the server with the topic id
+        qa.send({'mtype': 'settopic'});
     }
 
     function newhandleCall(resp) {

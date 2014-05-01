@@ -16,10 +16,49 @@ _DEBUG = settings.DEBUG
 # the backend handles all application logic
 _backend = backend.BackEnd()
 
-class IndexHandler(tornado.web.RequestHandler):
+class LobbyHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    def get(request):
-        request.render('index.html')
+    def get(self):
+        return self._render()
+
+    @tornado.web.asynchronous
+    def post(self):
+        # get name of topic to add
+        tname = self._get_topic_name()
+        if tname:
+            added = _backend.add_topic(tname)
+        self._render(**{'error': not added, 'topicname': tname})
+
+    def _render(self, **kwargs):
+        kwargs['topics'] = _backend.get_topics()
+        if 'error' not in kwargs:
+            kwargs['error'] = False
+        if 'topicname' not in kwargs:
+            kwargs['topicname'] = 'meaning of life'
+        self.render('index.html', **kwargs)
+
+    def _get_topic_name(self):
+        """Return topic name to add from raw data, or None if postdata invalid."""
+        try:
+            # probably shouldn't write a line of code like this
+            tname = self.request.body.split('=')[1].replace('+',' ').strip()
+        except:
+            tname = None
+        return tname
+
+    def set_extra_headers(self, path):
+        """Disable caching."""
+        self.set_header('Cache-Control', 
+                        'no-store, no-cache, must-revalidate, max-age=0')
+
+class QaHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self, slug):
+        topicid = _backend.get_topicid_from_url(slug)
+                
+        self.render('qa.html', 
+                    topicname=slug.replace('-',' '),
+                    topicid=topicid)
 
     def set_extra_headers(self, path):
         """Disable caching."""
@@ -57,9 +96,11 @@ if __name__ == "__main__":
     static_path = os.path.join(_dirname, 'static')
 
     app = tornado.web.Application([
-        (r'/', IndexHandler),
+        (r'/', LobbyHandler),
+        (r'/\?\(.*\)', LobbyHandler),
+        (r'/qa-(.*)', QaHandler),
         (r'/static/(.*)', MyStaticFileHandler, {'path': static_path}),
-        (r'/ws', WebSocketHandler)
+        (r'/ws/[\d+]', WebSocketHandler)
     ])
 
     http_server = tornado.httpserver.HTTPServer(app)

@@ -70,3 +70,42 @@ body {
 #questionpanel {
     display: inline-block;
 }
+
+.backlink a {
+    color: black;
+    text-decoration: none;
+}
+
+div.leftcol {
+    display: inline-block;
+    vertical-align: top;
+}
+div.rightcol {
+    display: inline-block;
+}
+
+.topic, .name {
+    width: 200px;
+    display: inline-block;
+}
+
+.users, .nusers {
+    width: 100px;
+    display: inline-block;
+}
+
+.topic, .users {
+    color: #9B1728;
+}
+
+div.margintop {
+    margin-top: 10px;
+}
+
+.error {
+    color: #9B1728;
+}
+
+#topicid {
+    display: none;
+}

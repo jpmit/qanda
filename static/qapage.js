@@ -16,6 +16,9 @@ qa.page = (function () {
         mymsg = document.getElementById("msgtxt"),
         replyid;
 
+    // topic id is a hidden element on the page
+    qa.topicId = parseInt(document.getElementById("topicid").innerHTML, 10);
+
     function setMyIdHandle(userId, handle, authToken) {
         // store my id
         qa.userId = userId;

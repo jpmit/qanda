@@ -33,13 +33,14 @@ M_REMOVEHANDLE = 'removehandle'
 M_FULLTREE = 'fulltree'
 M_NEWMESSAGE = 'newmessage'
 # message types from client to server
+M_SETTOPIC = 'settopic'
 M_RESPONSE = 'response'
 M_HEARTBEAT = 'heartbeat'
 # message types both ways
 M_CHANGEHANDLE = 'changehandle'
 
 ALLOWED_MESSAGES = [M_TEST, M_MYHANDLE, M_NEWHANDLE, M_REMOVEHANDLE,
-                    M_FULLTREE, M_NEWMESSAGE, M_RESPONSE, M_HEARTBEAT, M_CHANGEHANDLE]
+                    M_FULLTREE, M_NEWMESSAGE, M_SETTOPIC, M_RESPONSE, M_HEARTBEAT, M_CHANGEHANDLE]
 
 
 def message_changehandle(back, msg):
@@ -49,23 +50,29 @@ def message_changehandle(back, msg):
     newhandle = msg["handle"]
     back.users[userid].handle = newhandle
 
-    back.send_message_to_all_except({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, userid)
+    for uid in back.topics[back.users[userid]._topicid].users:
+        if (uid != userid):
+            back.send_message({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, uid)
 
 
 def message_response(back, msg):
     """Called when we receive a reply from the client."""
 
-    user = back.users[msg["userid"]].handle
+    userid = msg["userid"]
+    user = back.users[userid].handle
 
     mnode = MessageNode(user, msg["text"], msg["replyid"])
     # add to the message tree
-    newmsg = back.message_tree.add_message(mnode)
+    back.topics[msg["topicid"]].add_message(mnode)
     # add to the db
-    back.db.add_message(to_json(mnode))
+    back.db.add_message(to_json(mnode), msg["topicid"])
 
     # notify all clients of the new message
-    sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': newmsg} 
-    back.send_message_to_all(sendmsg)
+    sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': mnode}
+
+    for uid in back.topics[back.users[userid]._topicid].users:
+        back.send_message(sendmsg, uid)
+
 
 def message_ignore(back, msg):
     """Just ignore the message."""
@@ -73,10 +80,15 @@ def message_ignore(back, msg):
     pass
 
 
+def message_settopic(back, msg):
+    back.set_topic_for_user(msg["userid"], msg["topicid"])
+
+
 # callbacks
 CALLBACKS = {M_RESPONSE: message_response,
              M_CHANGEHANDLE: message_changehandle,
-             M_HEARTBEAT: message_ignore}
+             M_HEARTBEAT: message_ignore,
+             M_SETTOPIC: message_settopic}
 _POSTTIME_FORMAT = '%d %B %Y %H:%M'
 
 def to_json(pyo):

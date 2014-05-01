@@ -11,6 +11,7 @@ var qa = qa || {};
 // call send for sending a message to the server
 qa.send = function (message) {
     message.userid = qa.userId;
+    message.topicid = qa.topicId;
     message.auth_token = qa.authToken;
     message.tstamp = Date.now();
     ws.send(JSON.stringify(message));

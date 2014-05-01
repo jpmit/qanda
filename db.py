@@ -82,22 +82,25 @@ class PostgresDb(MessageDb):
     def get_all_messages(self):
         try:
             self.cursor.execute('SELECT * FROM messages')
-        except psycopg2.ProgrammingError:
             self.conn.commit()
-            self.create_tables()
-            self.cursor.execute('SELECT * FROM messages')
+        except psycopg2.ProgrammingError:
+            try:
+                self.create_tables()
+            except psycopg2.ProgrammingError:
+                if DEBUG:
+                    print 'could not read messages from DB'
+                return []
+        self.cursor.execute('SELECT * FROM messages')
         messages = self.cursor.fetchall()
         return [{'id': m[0], 'user': m[1], 'message': m[2], 'parentid': m[3],
                  'posttime': m[4]} for m in messages]
+
     def create_tables(self):
-        try:
-            # not 'user' is a reserved work is psql so we use 'uname' instead
-            self.cursor.execute('CREATE TABLE messages (id INT PRIMARY KEY, '
-                                'uname VARCHAR(50), message TEXT, '
-                                'parentid INT, posttime VARCHAR(50) )')
-            self.conn.commit()
-        except psycopg2.ProgrammingError:
-            pass
+        # note 'user' is a reserved work is psql so we use 'uname' instead
+        self.cursor.execute('CREATE TABLE messages (id INT PRIMARY KEY, '
+                            'uname VARCHAR(50), message TEXT, '
+                            'parentid INT, posttime VARCHAR(50) )')
+        self.conn.commit()
 
 if (DB_TYPE == DB_FILE):
     message_database = FileDb

@@ -10,7 +10,8 @@ import urlparse
 
 from settings import *
 from message import to_json
-from models import Topic
+# these are the only models that are persistent currently
+from models import Topic, Message
 
 class MessageDb(object):
     """Abstract base class."""
@@ -59,8 +60,8 @@ class FileDb(MessageDb):
         messages = [eval(lin) for lin in lines]
         return messages
 
-    def add_message(self, mdict):
-        smsg = json.dumps(mdict, default=to_json)
+    def add_message(self, msg):
+        smsg = json.dumps(msg, default=to_json)
         f = open(self.filename, 'a')
         f.write(smsg + '\n')
         f.close()
@@ -93,12 +94,12 @@ class PostgresDb(MessageDb):
                     'host': url.hostname,
                     'port': url.port}
 
-    def add_message(self, mdict, topicid):
+    def add_message(self, msg):
         query = 'INSERT INTO messages VALUES(%s, %s, %s, %s, %s, %s)'
-        self.cursor.execute(query, (mdict['id'], mdict['user'], 
-                                    mdict['message'], mdict['parentid'],
-                                    mdict['posttime'],
-                                    topicid))
+        self.cursor.execute(query, (msg.id, msg.user, 
+                                    msg.message, msg.parentid,
+                                    msg.posttime.strftime(DATE_FORMAT),
+                                    msg.topicid))
         self.conn.commit()
 
     def add_topic(self, topic):
@@ -112,12 +113,12 @@ class PostgresDb(MessageDb):
         topics = self.cursor.fetchall()
         return [Topic(t[1], t[0]) for t in topics]
     
-    def get_all_messages(self, topicid):
+    def get_all_messages_for_topic(self, topicid):
         self.cursor.execute('SELECT * FROM messages WHERE topicid=%s', (topicid,))
         self.conn.commit()
         messages = self.cursor.fetchall()
-        return [{'id': m[0], 'user': m[1], 'message': m[2], 'parentid': m[3],
-                 'posttime': m[4]} for m in messages]
+        return [Message(user=m[1], message=m[2], parentid=m[3], 
+                        posttime=m[4]) for m in messages]
 
     def create_tables_if_not_exist(self):
         try:

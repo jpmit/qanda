@@ -14,6 +14,7 @@ import datetime
 from copy import deepcopy
 
 from settings import *
+from models import Message
 
 ID_ALL = -1 # message id for a message to sent to all clients
 
@@ -50,7 +51,7 @@ def message_changehandle(back, msg):
     newhandle = msg["handle"]
     back.users[userid].handle = newhandle
 
-    for uid in back.topics[back.users[userid]._topicid].users:
+    for uid in back.topics[back.users[userid].topicid].users:
         if (uid != userid):
             back.send_message({K_TYPE: M_CHANGEHANDLE, 'changeid': userid, 'newhandle': newhandle}, uid)
 
@@ -61,16 +62,17 @@ def message_response(back, msg):
     userid = msg["userid"]
     user = back.users[userid].handle
 
-    mnode = MessageNode(user, msg["text"], msg["replyid"])
+    mnode = Message(user=user, message=msg["text"], 
+                    parentid=msg["replyid"], topicid=msg["topicid"])
     # add to the message tree
     back.topics[msg["topicid"]].add_message(mnode)
     # add to the db
-    back.db.add_message(to_json(mnode), msg["topicid"])
+    back.db.add_message(mnode)
 
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': mnode}
 
-    for uid in back.topics[back.users[userid]._topicid].users:
+    for uid in back.topics[back.users[userid].topicid].users:
         back.send_message(sendmsg, uid)
 
 
@@ -89,75 +91,18 @@ CALLBACKS = {M_RESPONSE: message_response,
              M_CHANGEHANDLE: message_changehandle,
              M_HEARTBEAT: message_ignore,
              M_SETTOPIC: message_settopic}
-_POSTTIME_FORMAT = '%d %B %Y %H:%M'
 
 def to_json(pyo):
-    """Define JSON serialization for MessageNode object."""
-    if isinstance(pyo, MessageNode):
+    """Define JSON serialization for Message object."""
+    if isinstance(pyo, Message):
         return {'user': pyo.user,
                 'message': pyo.message,
                 'id': pyo.id,
                 'parentid': pyo.parentid,
-                'posttime': pyo.posttime.strftime(_POSTTIME_FORMAT)}
+                'posttime': pyo.posttime.strftime(DATE_FORMAT),
+                'topicid': pyo.topicid}
 
     raise TypeError(repr(pyo) + ' is not JSON serializable') 
-
-def mnode_from_json(msg):
-    return MessageNode(msg['user'], msg['message'], msg['parentid'],
-                       datetime.datetime.strptime(msg['posttime'],
-                                                  _POSTTIME_FORMAT))
-
-# a message with parentid of _PARENTID_ROOT is a root message
-_PARENTID_ROOT = -1
-
-
-class MessageNode(object):
-    def __init__(self, user, message, parentid, posttime=None):
-        self.user = user
-        self.message = message
-        self.id = MessageTree.num_messages
-        self.parentid = parentid
-        if posttime is None:
-            posttime = datetime.datetime.now()
-        self.posttime = posttime
-
-class MessageTree(object):
-    """Class to store all messages in the Q&A session."""
-
-    # number of messages in tree
-    num_messages = 0
-
-    def __init__(self, messages=[]):
-        
-        # store ids of the root nodes (in the correct display order)
-        self._rootnodes = []
-        # key is the node id, value is a list of children node ids (in
-        # the correct display order)
-        self._children = {}
-        # keys are the node ids, values are the actual MessageNode objects
-        self._messages = {}
-
-        for msg in messages:
-            self.add_message(mnode_from_json(msg))
-
-    def add_message(self, mnode):
-        mnodeid = mnode.id
-        parentid = mnode.parentid
-        if parentid == _PARENTID_ROOT:
-            self._rootnodes.append(mnodeid)
-        else:
-            self._children[parentid].append(mnodeid)
-        self._children[mnodeid] = []
-        self._messages[mnodeid] = mnode
-        MessageTree.num_messages += 1
-
-        return mnode
-
-    def get_all_messages(self):
-        return {'rootnodes': self._rootnodes, 
-                'children': self._children, 
-                'messages': self._messages}
-
 
 class InvalidMessageError(Exception):
     pass

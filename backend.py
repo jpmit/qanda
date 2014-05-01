@@ -7,7 +7,7 @@ from tornado.websocket import WebSocketClosedError
 from settings import *
 import message
 import db
-from models import Topic, User
+from models import Topic, User, MessageTree
 
         
 class BackEnd(object):
@@ -21,7 +21,7 @@ class BackEnd(object):
         # load all existing topics and their messages
         topics = self.db.get_all_topics()
         for t in topics:
-            t.message_tree = message.MessageTree(self.db.get_all_messages(t.topicid))
+            t.message_tree = MessageTree(self.db.get_all_messages_for_topic(t.topicid))
             self.topics[t.topicid] = t
 
     def add_topic(self, name):
@@ -43,7 +43,7 @@ class BackEnd(object):
             # user must have disconnected
             pass
         else:
-            u._topicid = topicid
+            u.topicid = topicid
             t = self.topics[topicid]
             t.add_user(userid)
             # send all other handles to user
@@ -101,12 +101,12 @@ class BackEnd(object):
 
         if closeid is not None:
             u = self.users[closeid]
-            for uid in self.topics[u._topicid].users:
+            for uid in self.topics[u.topicid].users:
                 if uid != closeid:
                     self.send_message({message.K_TYPE: message.M_REMOVEHANDLE,
                                        'userid': closeid},
                                       uid)
-            self.topics[u._topicid].remove_user(closeid)
+            self.topics[u.topicid].remove_user(closeid)
             del self.users[closeid]
         else:
             if DEBUG:

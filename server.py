@@ -63,7 +63,7 @@ if __name__ == "__main__":
     ])
 
     http_server = tornado.httpserver.HTTPServer(app)
-    # using environment variable means we will work on Heroku
+    # PORT is for Heroku deployment
     port = int(os.environ.get("PORT", 9500))
     http_server.listen(port)
     main_loop = tornado.ioloop.IOLoop.instance()

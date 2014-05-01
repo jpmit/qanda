@@ -6,6 +6,7 @@ We store messages in the JSON format defined in message.to_json
 import json
 import os
 import psycopg2
+import urlparse
 
 from settings import *
 from message import to_json
@@ -64,13 +65,33 @@ class FileDb(MessageDb):
         f.close()
 
 class PostgresDb(MessageDb):
-    database = 'testdb'
-    user = 'jm0037'
     def __init__(self):
-        self.conn = psycopg2.connect(database=self.database, user=self.user) 
+        self.settings = self._get_connection_information()
+        self.conn = psycopg2.connect(database=self.settings['database'],
+                                     user=self.settings['user'],
+                                     password=self.settings.get('password', None),
+                                     host=self.settings.get('host', None),
+                                     port=self.settings.get('port', None))
         self.cursor = self.conn.cursor()
         self.cursor.execute('SELECT version()')
         ver = self.cursor.fetchone()
+
+    def _get_connection_information(self):
+        """Set up settings dict."""
+        dburl = os.environ.get("DATABASE_URL")
+        if dburl is None:
+            # local machine
+            return {'database': 'testdb',
+                    'user': 'jm0037'}
+        else:
+            # Heroku
+            urlparse.uses_netloc.append("postgres")
+            url = urlparse.urlparse(dburl)
+            return {'database': url.path[1:],
+                    'user': url.username,
+                    'password': url.password,
+                    'host': url.hostname,
+                    'port': url.port}
 
     def add_message(self, mdict):
         query = 'INSERT INTO messages VALUES(%s, %s, %s, %s, %s)'

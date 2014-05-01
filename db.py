@@ -105,6 +105,7 @@ class PostgresDb(MessageDb):
             self.cursor.execute('SELECT * FROM messages')
             self.conn.commit()
         except psycopg2.ProgrammingError:
+            self.conn.commit()
             try:
                 self.create_tables()
             except psycopg2.ProgrammingError:

@@ -1,5 +1,4 @@
-* Add username to lobby page
-* Make lobby page websocket based 
+* Add username to lobby page (?)
 * Refactor backend, esp. sending of messages
 * allow users to upload a photo
 * a + and - expandable thing for each message

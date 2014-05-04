@@ -10,14 +10,14 @@
     <h2>Lobby</h2>
     <div>
       Join one of the current Q&As:
-      <div class="headings">
+<!--      <div class="headings">
         <span class="topic">topic</span>
         <span class="users">users</span>
-      </div>
+      </div> -->
       {% for topic in topics %}
       <div class="qa">
         <span class="name"><a href="/qa-{{ topic.urlname }}">{{ topic.name }}</a></span>
-        <span class="nusers">{{ topic.nusers }}</span>
+<!--        <span class="nusers">{{ topic.nusers }}</span> -->
       </div>
       {% end %}
     </div>

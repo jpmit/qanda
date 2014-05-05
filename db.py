@@ -13,7 +13,7 @@ from settings import *
 from models import Topic, Message, to_json
 
 class MessageDb(object):
-    """Abstract base class."""
+    """Base class."""
 
     def add_message(self, message):
         """Add a message to the db."""

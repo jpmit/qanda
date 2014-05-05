@@ -73,7 +73,6 @@ def message_response(back, msg):
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': mnode}
 
-#    print back.users.keys(), back.topics.keys(), back.users[userid].topicid
     for uid in back.topics[back.users[userid].topicid].users:
         back.send_message(sendmsg, uid)
 

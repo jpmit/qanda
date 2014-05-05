@@ -42,9 +42,9 @@ class Topic(object):
 
     def __init__(self, name, id=None):
         if id is None:
-            self.topicid = Topic.ntopics
+            self.id = Topic.ntopics
         else:
-            self.topicid = id
+            self.id = id
         self.name = name
         self.urlname = name.replace(' ','-')
         self.nusers = 0
@@ -127,3 +127,19 @@ class MessageTree(object):
         return {'rootnodes': self._rootnodes, 
                 'children': self._children, 
                 'messages': self._messages}
+
+
+def to_json(pyo):
+    """Define JSON serialization for Message and Topic objects."""
+    if isinstance(pyo, Message):
+        return {'user': pyo.user,
+                'message': pyo.message,
+                'id': pyo.id,
+                'parentid': pyo.parentid,
+                'posttime': pyo.posttime.strftime(DATE_FORMAT),
+                'topicid': pyo.topicid}
+    elif isinstance(pyo, Topic):
+        return {'id': pyo.id,
+                'name': pyo.name}
+
+    raise TypeError(repr(pyo) + ' is not JSON serializable') 

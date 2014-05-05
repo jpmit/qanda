@@ -7,7 +7,7 @@ from tornado.websocket import WebSocketClosedError
 from settings import *
 import message
 import db
-from models import Topic, User, MessageTree
+from models import Topic, User, MessageTree, to_json
 
         
 class BackEnd(object):
@@ -21,8 +21,8 @@ class BackEnd(object):
         # load all existing topics and their messages
         topics = self.db.get_all_topics()
         for t in topics:
-            t.message_tree = MessageTree(self.db.get_all_messages_for_topic(t.topicid))
-            self.topics[t.topicid] = t
+            t.message_tree = MessageTree(self.db.get_all_messages_for_topic(t.id))
+            self.topics[t.id] = t
 
     def add_topic(self, name):
         """Return True if successfully added topic."""
@@ -31,7 +31,7 @@ class BackEnd(object):
             if (t.name == name):
                 return False
         newt = Topic(name)
-        self.topics[newt.topicid] = newt
+        self.topics[newt.id] = newt
         # add to db
         self.db.add_topic(newt)
         return True
@@ -72,7 +72,7 @@ class BackEnd(object):
     def get_topicid_from_url(self, url):
         for t in self.topics.values():
             if (t.urlname == url):
-                return t.topicid
+                return t.id
         return Topic.NOID
         
     def add_user(self, handler):
@@ -136,7 +136,7 @@ class BackEnd(object):
     def send_message(self, messagedict, userid):
         # add timestamp and stringify the message
         messagedict[message.K_TSTAMP] = time.time()*1000
-        jsonmsg = json.dumps(messagedict, default=message.to_json)
+        jsonmsg = json.dumps(messagedict, default=to_json)
         if DEBUG:
             print 'SENDING MESSAGE: {}'.format(jsonmsg)
         

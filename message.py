@@ -14,7 +14,7 @@ import datetime
 from copy import deepcopy
 
 from settings import *
-from models import Message
+from models import Message, Topic
 
 ID_ALL = -1 # message id for a message to sent to all clients
 
@@ -72,6 +72,7 @@ def message_response(back, msg):
     # notify all clients of the new message
     sendmsg = {K_TYPE: M_NEWMESSAGE, 'message': mnode}
 
+#    print back.users.keys(), back.topics.keys(), back.users[userid].topicid
     for uid in back.topics[back.users[userid].topicid].users:
         back.send_message(sendmsg, uid)
 
@@ -92,17 +93,6 @@ CALLBACKS = {M_RESPONSE: message_response,
              M_HEARTBEAT: message_ignore,
              M_SETTOPIC: message_settopic}
 
-def to_json(pyo):
-    """Define JSON serialization for Message object."""
-    if isinstance(pyo, Message):
-        return {'user': pyo.user,
-                'message': pyo.message,
-                'id': pyo.id,
-                'parentid': pyo.parentid,
-                'posttime': pyo.posttime.strftime(DATE_FORMAT),
-                'topicid': pyo.topicid}
-
-    raise TypeError(repr(pyo) + ' is not JSON serializable') 
 
 class InvalidMessageError(Exception):
     pass

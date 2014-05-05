@@ -13,7 +13,7 @@ DB_DUMMY = 'dummy'
 # DB_FILE     - data is stored in flat files
 # DB_POSTGRES - postgreSQL database
 # DB_DUMMY    - fake data store, nothing stored
-DB_TYPE = DB_DUMMY
+DB_TYPE = DB_FILE
 # if DB_DROP = True, we will *DELETE* all tables from the DB when we
 # start the server.
 DB_DROP = True

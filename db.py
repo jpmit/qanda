@@ -9,9 +9,8 @@ import psycopg2
 import urlparse
 
 from settings import *
-from message import to_json
 # Topic and Message are the only models that are persistent currently
-from models import Topic, Message
+from models import Topic, Message, to_json
 
 class MessageDb(object):
     """Abstract base class."""
@@ -41,17 +40,18 @@ class DummyDb(MessageDb):
     # if True, use dummy data, otherwise no data
     USE_DUMMY_DATA = True
 
-    dummy_data = {'messages': [Message(user='admin', 
-                                       message='What do you think is the significance of coffee?',
+    dummy_data = {'messages': [Message(user='admin',
+                                       message='How do you do it?',
                                        topicid=1,
                                        parentid=-1,
                                        posttime='14 April 2014 18:21'),
                                Message(user='admin',
-                                       message='How important are the bananas in Timbuktu?',
-                                       topicid=1, 
+                                       message='How can I do it?',
+                                       topicid=1,
                                        parentid=-1,
                                        posttime='14 April 2014 19:21')],
                   'topics': [Topic('How to maximise awesomeness', id=1)]}
+
     def __init__(self):
         super(DummyDb, self).__init__()
 
@@ -77,26 +77,55 @@ class DummyDb(MessageDb):
 
 
 class FileDb(MessageDb):
-    filename = 'data.out'
+    mfilename   = 'message.db'
+    tfilename   = 'topic.db'
+    
     def __init__(self):
         super(FileDb, self).__init__()
-    
-    def get_all_messages(self):
-        if not os.path.exists(self.filename):
-            f = open(self.filename, 'w')
-            f.close()
-            return []
-        f = open(self.filename, 'r')
-        lines = f.readlines()
-        f.close()
-        messages = [eval(lin) for lin in lines]
-        return messages
+
+        # create the files if they don't already exist (or want to drop them)
+        for fn in [self.mfilename, self.tfilename]:
+            if DB_DROP or not os.path.exists(fn):
+                f = open(fn, 'w')
+                f.close()
 
     def add_message(self, msg):
         smsg = json.dumps(msg, default=to_json)
-        f = open(self.filename, 'a')
+        f = open(self.mfilename, 'a')
         f.write(smsg + '\n')
         f.close()
+
+    def get_all_messages(self):
+        f = open(self.mfilename, 'r')
+        lines = f.readlines()
+        f.close()
+        mdicts = [eval(lin) for lin in lines]
+        messages = [Message(m["user"], m["message"], m["parentid"],
+                            m["posttime"], m["topicid"], m["id"]) 
+                    for m in mdicts]
+        return messages
+
+    def add_topic(self, topic):
+        stopic = json.dumps(topic, default=to_json)
+        f = open(self.tfilename, 'a')
+        f.write(stopic + '\n')
+        f.close()
+
+    def get_all_topics(self):
+        f = open(self.tfilename, 'r')
+        lines = f.readlines()
+        f.close()
+        tdicts = [eval(lin) for lin in lines]
+        topics = [Topic(t["name"], t["id"]) for t in tdicts]
+        return topics
+
+    def get_all_messages_for_topic(self, topicid):
+        msgs = []
+        for m in self.get_all_messages():
+            if (m.topicid == topicid):
+                msgs.append(m)
+        return msgs
+
 
 class PostgresDb(MessageDb):
     def __init__(self):
@@ -187,6 +216,7 @@ class PostgresDb(MessageDb):
                             'topicid  INT references topics(id) '
                             ')')
         self.conn.commit()
+
 
 if (DB_TYPE == DB_FILE):
     message_database = FileDb

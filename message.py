@@ -41,7 +41,8 @@ M_HEARTBEAT = 'heartbeat'
 M_CHANGEHANDLE = 'changehandle'
 
 ALLOWED_MESSAGES = [M_TEST, M_MYHANDLE, M_NEWHANDLE, M_REMOVEHANDLE,
-                    M_FULLTREE, M_NEWMESSAGE, M_SETTOPIC, M_RESPONSE, M_HEARTBEAT, M_CHANGEHANDLE]
+                    M_FULLTREE, M_NEWMESSAGE, M_SETTOPIC, M_RESPONSE, 
+                    M_HEARTBEAT, M_CHANGEHANDLE]
 
 
 def message_changehandle(back, msg):

@@ -9,7 +9,7 @@ import message
 import db
 from models import Topic, User, MessageTree, to_json
 
-        
+
 class BackEnd(object):
     def __init__(self):
 
@@ -39,7 +39,7 @@ class BackEnd(object):
     def set_topic_for_user(self, userid, topicid):
         try:
             u = self.users[userid]
-        except:
+        except KeyError:
             # user must have disconnected
             pass
         else:
@@ -51,7 +51,7 @@ class BackEnd(object):
                 if uid != userid:
                     user = self.users[uid]
                     self.send_message({message.K_TYPE: message.M_NEWHANDLE,
-                                       'handle': user.handle, 
+                                       'handle': user.handle,
                                        'userid': uid}, userid)
 
             # send all messages in topic message tree to client
@@ -63,7 +63,7 @@ class BackEnd(object):
             for uid in self.topics[topicid].users:
                 if uid != userid:
                     self.send_message({message.K_TYPE: message.M_NEWHANDLE,
-                                       'handle': u.handle, 
+                                       'handle': u.handle,
                                        'userid': userid}, uid)
 
     def get_topics(self):
@@ -131,7 +131,9 @@ class BackEnd(object):
             return
         
         # message ok, execute callback
-        message.CALLBACKS[msg[message.K_TYPE]](self, msg)
+        cback = message.CALLBACKS.get(msg[message.K_TYPE], 
+                                      message.message_ignore)
+        cback(self, msg)
 
     def send_message(self, messagedict, userid):
         # add timestamp and stringify the message

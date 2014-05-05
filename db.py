@@ -122,7 +122,7 @@ class FileDb(MessageDb):
     def get_all_messages_for_topic(self, topicid):
         msgs = []
         for m in self.get_all_messages():
-            if (m.topicid == topicid):
+            if (m.id == topicid):
                 msgs.append(m)
         return msgs
 
@@ -168,7 +168,7 @@ class PostgresDb(MessageDb):
 
     def add_topic(self, topic):
         query = 'INSERT INTO topics VALUES(%s, %s)'
-        self.cursor.execute(query, (topic.topicid, topic.name))
+        self.cursor.execute(query, (topic.id, topic.name))
         self.conn.commit()
 
     def get_all_topics(self):

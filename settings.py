@@ -16,4 +16,5 @@ DB_DUMMY = 'dummy'
 DB_TYPE = DB_POSTGRES
 # if DB_DROP = True, we will *DELETE* all tables from the DB when we
 # start the server.
-DB_DROP = True
+DB_DROP = False
+

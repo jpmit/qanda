@@ -77,6 +77,7 @@ class DummyDb(MessageDb):
 
 
 class FileDb(MessageDb):
+    # despite the .db extension, these are simply flat files
     mfilename   = 'message.db'
     tfilename   = 'topic.db'
     

@@ -8,20 +8,15 @@ import tornado.ioloop
 import tornado.web
 
 import backend
-import settings
-
-# print messages received and sent
-_DEBUG = settings.DEBUG
+from settings import DEBUG
 
 # the backend handles all application logic
 _backend = backend.BackEnd()
 
 class LobbyHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
     def get(self):
         return self._render()
 
-    @tornado.web.asynchronous
     def post(self):
         # get name of topic to add
         tname = self._get_topic_name()
@@ -52,7 +47,6 @@ class LobbyHandler(tornado.web.RequestHandler):
                         'no-store, no-cache, must-revalidate, max-age=0')
 
 class QaHandler(tornado.web.RequestHandler):
-    @tornado.web.asynchronous
     def get(self, slug):
         topicid = _backend.get_topicid_from_url(slug)
                 
@@ -74,14 +68,14 @@ class MyStaticFileHandler(tornado.web.StaticFileHandler):
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
 
-        if _DEBUG:
+        if DEBUG:
             print 'OPEN'
 
         _backend.add_user(self)
 
     def on_close(self):
 
-        if _DEBUG:
+        if DEBUG:
             print 'CLOSE'
 
         _backend.remove_user(self)

@@ -4,7 +4,7 @@ import time
 import json
 from tornado.websocket import WebSocketClosedError
 
-from settings import *
+from settings import DEBUG
 import message
 import db
 from models import Topic, User, MessageTree, to_json

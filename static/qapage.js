@@ -22,16 +22,18 @@ qa.page = (function () {
     function setMyIdHandle(userId, handle, authToken) {
         // store my id
         qa.userId = userId;
-        // authToken is sent with every message
-        qa.authToken = authToken;
         // write handle to the editable text box
         handleEdit.value = handle;
+        // authToken is sent with every message
+        if (authToken !== undefined) {
+            qa.authToken = authToken;
+        }
         // write handle name to the list of users
         myhandleDiv.innerHTML = handle;
     }
 
     handleEdit.onkeyup = function () {
-        setMyIdHandle(qa.myid, handleEdit.value);
+        setMyIdHandle(qa.userId, handleEdit.value);
     };
     // we send the message to the server onchange i.e. only when
     // handleEdit loses focus.
@@ -121,7 +123,6 @@ qa.page = (function () {
     }
 
     function showReplyDiv(msgid) {
-        console.log(msgid);
         var parentMsg,
             replyMessage;
         if (msgid === qa.rootParentId) {

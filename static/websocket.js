@@ -16,7 +16,7 @@ var ws = (function () {
     // configuation options
     var wsUri = location.origin.replace(/^http/, 'ws') + '/ws/' + document.getElementById('topicid').innerHTML,
         simLatency = 0,  // simulated latency (one way trip time) in ms
-        debug = false,   // print messages sent and received to console
+        debug = true,   // print messages sent and received to console
         dummy = false,   // if dummy, no messages sent/received
         callbacks,
         webSocket;

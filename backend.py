@@ -36,6 +36,11 @@ class BackEnd(object):
         self.db.add_topic(newt)
         return True
 
+    def get_topic_from_id(self, topicid):
+        if topicid in self.topics:
+            return self.topics[topicid]
+        return None
+
     def set_topic_for_user(self, userid, topicid):
         try:
             u = self.users[userid]
@@ -68,12 +73,6 @@ class BackEnd(object):
 
     def get_topics(self):
         return self.topics.values()
-
-    def get_topicid_from_url(self, url):
-        for t in self.topics.values():
-            if (t.urlname == url):
-                return t.id
-        return Topic.NOID
         
     def add_user(self, handler):
         """handler is an instance of tornado.websocket.WebSocketHandler.

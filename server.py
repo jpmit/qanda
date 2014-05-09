@@ -1,6 +1,7 @@
 """Tornado WebSockets server for the q&a app."""
 
 import os
+import urlparse
 
 import tornado.websocket
 import tornado.httpserver
@@ -35,9 +36,8 @@ class LobbyHandler(tornado.web.RequestHandler):
     def _get_topic_name(self):
         """Return topic name to add from raw data, or None if postdata invalid."""
         try:
-            # probably shouldn't write a line of code like this
-            tname = self.request.body.split('=')[1].replace('+',' ').strip()
-        except:
+            tname = urlparse.parse_qs(self.request.body)['topic'][0]
+        except KeyError, IndexError:
             tname = None
         return tname
 
@@ -48,11 +48,9 @@ class LobbyHandler(tornado.web.RequestHandler):
 
 class QaHandler(tornado.web.RequestHandler):
     def get(self, slug):
-        topicid = _backend.get_topicid_from_url(slug)
-                
-        self.render('qa.html', 
-                    topicname=slug.replace('-',' '),
-                    topicid=topicid)
+        t = _backend.get_topic_from_id(int(slug))
+
+        self.render('qa.html', topic=t)
 
     def set_extra_headers(self, path):
         """Disable caching."""

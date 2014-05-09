@@ -1,7 +1,7 @@
 """Settings for the server."""
 
 # print messages received and sent
-DEBUG = False
+DEBUG = True
 
 # string date format used for DB storage
 DATE_FORMAT = '%d %B %Y %H:%M'

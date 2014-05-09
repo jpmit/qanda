@@ -46,7 +46,6 @@ class Topic(object):
         else:
             self.id = id
         self.name = name
-        self.urlname = name.replace(' ','-')
         self.nusers = 0
         Topic.ntopics += 1
         

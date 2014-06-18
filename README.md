@@ -3,8 +3,8 @@ Q&A App
 
 Copyright (c) James Mithen 2014.
 
-This is a Python webapp for running 'live Q&A sessions'.  On the
-server side, it requires Tornado (web framework) and psycopg2
+This is a simple Python webapp for running 'live Q&A sessions'.  On
+the server side, it requires Tornado (web framework) and psycopg2
 (database adaptor for PostgreSQL).  The browser on the client side
 must support the Websockets protocol; in practice this is the case for
 nearly all modern browsers at the time of writing.  The app is
